@@ -278,6 +278,5 @@ The compiled binaries for these tools are available for download below.All binar
 
 | Version | File | SHA-256 | Description |
 |---|---|---|---|
-| v0.1 | `CodepostEx.ps1` | `HASH` | Lightweight  |
-| v0.2 | `CodepostEx.exe` | `HASH` | Full-featured|
-
+| v0.1 | `CodepostEx.ps1` | `41FA51B1B7BF565ACE88C7E6973DE5D22C5C5ADE1B0E81138057E07EBAD31FEE` | Lightweight  |
+| v0.2 | `CodepostEx.exe` | `E585D20B9A011752EE0F2C2D9F8119BA15431F745098E22A65E0B768A78202E4` | Full-featured|
