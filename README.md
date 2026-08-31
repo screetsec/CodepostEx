@@ -27,7 +27,9 @@ Restore complete (0.5s)
   CodepostEx net10.0-windows win-x64 succeeded (6.0s) → bin\Release\net10.0-windows\win-x64\publish\
 ```
 
-Output: `bin\Release\net10.0-windows\win-x64\publish\CodepostEx.exe`
+Output: `bin\Release\net10.0-windows\win-x64\publish\CodepostEx.exe`  
+
+If you get `NETSDK1045` error, install the .NET 10 SDK from https://aka.ms/dotnet/download or change the `.csproj` target framework from `net10.0-windows` to net9.0-windows.
 
 ## Usage
 
