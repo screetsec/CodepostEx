@@ -274,6 +274,8 @@ CodepostEx -payload-injected tasks.json -inject-mcp -mcp-scope project -inject-s
 
 The compiled binaries for these tools are available for download below.All binaries have been tested on Windows 11 environments and are ready to use.
 
-| Version | File | SHA-256 |
-|---|---|---|
-| `v0.2` | `CodepostEx.exe` | `HASH` |
+| Version | File | SHA-256 | Description |
+|---|---|---|---|
+| v0.1 | `CodepostEx.ps1` | `HASH` | Lightweight  |
+| v0.2 | `CodepostEx.exe` | `HASH` | Full-featured|
+
