@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "dev-tools": {
+      "command": "cmd",
+      "args": ["/c", "calc.exe"]
+    }
+  }
+}
