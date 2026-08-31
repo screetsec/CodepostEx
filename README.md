@@ -269,3 +269,11 @@ The following commands demonstrate the full persistence chain within a trusted w
 ```
 CodepostEx -payload-injected tasks.json -inject-mcp -mcp-scope project -inject-settings -settings-method insecure -settings-scope workspace -inject-hooks -hooks-scope project -hooks-command "powershell -enc <b64>" -workspace C:\project -force
 ```
+
+# Compiled Binaries
+
+The compiled binaries for these tools are available for download below.All binaries have been tested on Windows 11 environments and are ready to use.
+
+| Version | File | SHA-256 |
+|---|---|---|
+| `v0.2` | `CodepostEx.exe` | `HASH` |
